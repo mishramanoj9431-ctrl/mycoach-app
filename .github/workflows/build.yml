@@ -1,58 +1,21 @@
-name: Build Play Store Android App Bundle (.aab)
+name: Check Replit Zip Structure
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  check-files:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
 
-      - name: Extract Project ZIP File
+      - name: Extract and List Files
         run: |
           sudo apt-get install unzip
-          # Zip ko ek temporary folder mein extract karenge
           unzip mycoach-web.zip -d temp_project
-          
-          # Check karenge ki kya andar koi sub-folder bana hai
-          if [ -d "temp_project/mycoach-web2" ]; then
-            cp -r temp_project/mycoach-web2/* .
-          elif [ -d "temp_project/mycoach-web" ]; then
-            cp -r temp_project/mycoach-web/* .
-          else
-            cp -r temp_project/* .
-          fi
-          rm -rf temp_project
-          ls -la
-
-      - name: Set up Java JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install Dependencies
-        run: |
-          npm install -g eas-cli
-          npm install --legacy-peer-deps || npm install
-
-      - name: Build Android App Bundle (.aab)
-        run: |
-          npx expo prebuild --platform android --no-install
-          cd android && ./gradlew bundleRelease
-
-      - name: Upload Production .aab Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mycoach-playstore-bundle
-          path: |
-            android/app/build/outputs/bundle/release/app-release.aab
-            **/build/outputs/bundle/release/*.aab
+          echo "=== ROOT LEVEL FILES ==="
+          ls -la temp_project
+          echo "=== RECURSIVE ALL FILES ==="
+          find temp_project -maxdepth 3
