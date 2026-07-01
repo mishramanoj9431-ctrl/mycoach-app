@@ -28,21 +28,29 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Install Google Bubblewrap
-        run: npm install -g @bubblewrap/cli
-
-      - name: Initialize and Build Android Apps
+      - name: Install Cordova and Build Android App
         run: |
-          bubblewrap init --manifest=manifest.json --nointeractive || true
-          bubblewrap build --nointeractive --signingKeyPath="" --signingKeyPassword="" --keyPassword="" || true
-          echo "=== CHECKING WHERE FILES ARE GENERATED ==="
-          find . -name "*.apk" -o -name "*.aab"
+          npm install -g cordova
+          # Naya cordova project create karenge
+          cordova create my-app com.mycoach.app MyCoach
+          cd my-app
+          # Cordova ka default www hata kar aapki zip wali files daal denge
+          rm -rf www/*
+          cp -r ../* www/ || true
+          rm -rf www/my-app www/mycoach-web.zip www/.github
+          
+          # Android platform add karke build karenge
+          cordova platform add android
+          cordova build android --release
 
-      - name: Upload All Android Outputs (APK and AAB)
+      - name: Upload Testing APK
         uses: actions/upload-artifact@v4
         with:
-          name: mycoach-android-files
-          path: |
-            **/*.apk
-            **/*.aab
-          if-no-files-found: warn
+          name: mycoach-testing-apk
+          path: "my-app/platforms/android/app/build/outputs/apk/release/*.apk"
+
+      - name: Upload Play Store AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: mycoach-playstore-bundle
+          path: "my-app/platforms/android/app/build/outputs/bundle/release/*.aab"
