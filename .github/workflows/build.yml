@@ -33,24 +33,16 @@ jobs:
 
       - name: Initialize and Build Android Apps
         run: |
-          # Manifest read karke project setup karega
           bubblewrap init --manifest=manifest.json --nointeractive || true
-          
-          # Isse APK aur AAB dono generate honge
           bubblewrap build --nointeractive --signingKeyPath="" --signingKeyPassword="" --keyPassword="" || true
+          echo "=== CHECKING WHERE FILES ARE GENERATED ==="
+          find . -name "*.apk" -o -name "*.aab"
 
-      - name: Upload Testing APK
+      - name: Upload All Android Outputs (APK and AAB)
         uses: actions/upload-artifact@v4
         with:
-          name: mycoach-testing-apk
+          name: mycoach-android-files
           path: |
-            *.apk
             **/*.apk
-
-      - name: Upload Play Store AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: mycoach-playstore-bundle
-          path: |
-            *.aab
             **/*.aab
+          if-no-files-found: warn
