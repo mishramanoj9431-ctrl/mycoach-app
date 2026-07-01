@@ -14,8 +14,18 @@ jobs:
       - name: Extract Project ZIP File
         run: |
           sudo apt-get install unzip
-          unzip mycoach-web.zip -d .
-          # Agar files ek subfolder mein hain, toh check karne ke liye
+          # Zip ko ek temporary folder mein extract karenge
+          unzip mycoach-web.zip -d temp_project
+          
+          # Check karenge ki kya andar koi sub-folder bana hai
+          if [ -d "temp_project/mycoach-web2" ]; then
+            cp -r temp_project/mycoach-web2/* .
+          elif [ -d "temp_project/mycoach-web" ]; then
+            cp -r temp_project/mycoach-web/* .
+          else
+            cp -r temp_project/* .
+          fi
+          rm -rf temp_project
           ls -la
 
       - name: Set up Java JDK
@@ -31,15 +41,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # Agar mycoach-web2 folder hai toh uske andar jaakar install karega, nahi toh root par
-          if [ -d "mycoach-web2" ]; then cd mycoach-web2; fi
           npm install -g eas-cli
-          npm install
+          npm install --legacy-peer-deps || npm install
 
       - name: Build Android App Bundle (.aab)
         run: |
-          if [ -d "mycoach-web2" ]; then cd mycoach-web2; fi
-          npx expo prebuild --platform android
+          npx expo prebuild --platform android --no-install
           cd android && ./gradlew bundleRelease
 
       - name: Upload Production .aab Artifact
@@ -47,4 +54,5 @@ jobs:
         with:
           name: mycoach-playstore-bundle
           path: |
-            **/android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/bundle/release/app-release.aab
+            **/build/outputs/bundle/release/*.aab
