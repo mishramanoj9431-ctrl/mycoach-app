@@ -1,21 +1,56 @@
-name: Check Replit Zip Structure
+name: Generate Testing APK and Play Store AAB
 
 on:
   workflow_dispatch:
 
 jobs:
-  check-files:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
 
-      - name: Extract and List Files
+      - name: Extract Web Files
         run: |
           sudo apt-get install unzip
-          unzip mycoach-web.zip -d temp_project
-          echo "=== ROOT LEVEL FILES ==="
-          ls -la temp_project
-          echo "=== RECURSIVE ALL FILES ==="
-          find temp_project -maxdepth 3
+          unzip -o mycoach-web.zip -d .
+          ls -la
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Install Google Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Initialize and Build Android Apps
+        run: |
+          # Manifest read karke project setup karega
+          bubblewrap init --manifest=manifest.json --nointeractive || true
+          
+          # Isse APK aur AAB dono generate honge
+          bubblewrap build --nointeractive --signingKeyPath="" --signingKeyPassword="" --keyPassword="" || true
+
+      - name: Upload Testing APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mycoach-testing-apk
+          path: |
+            *.apk
+            **/*.apk
+
+      - name: Upload Play Store AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: mycoach-playstore-bundle
+          path: |
+            *.aab
+            **/*.aab
