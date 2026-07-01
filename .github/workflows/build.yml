@@ -15,6 +15,8 @@ jobs:
         run: |
           sudo apt-get install unzip
           unzip mycoach-web.zip -d .
+          # Agar files ek subfolder mein hain, toh check karne ke liye
+          ls -la
 
       - name: Set up Java JDK
         uses: actions/setup-java@v4
@@ -27,13 +29,16 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install EAS CLI and Dependencies
+      - name: Install Dependencies
         run: |
+          # Agar mycoach-web2 folder hai toh uske andar jaakar install karega, nahi toh root par
+          if [ -d "mycoach-web2" ]; then cd mycoach-web2; fi
           npm install -g eas-cli
           npm install
 
       - name: Build Android App Bundle (.aab)
         run: |
+          if [ -d "mycoach-web2" ]; then cd mycoach-web2; fi
           npx expo prebuild --platform android
           cd android && ./gradlew bundleRelease
 
@@ -41,4 +46,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mycoach-playstore-bundle
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: |
+            **/android/app/build/outputs/bundle/release/app-release.aab
