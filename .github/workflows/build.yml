@@ -28,29 +28,20 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Install Cordova and Build Android App
+      - name: Install Cordova and Build Android Testing APK
         run: |
           npm install -g cordova
-          # Naya cordova project create karenge
           cordova create my-app com.mycoach.app MyCoach
           cd my-app
-          # Cordova ka default www hata kar aapki zip wali files daal denge
           rm -rf www/*
           cp -r ../* www/ || true
           rm -rf www/my-app www/mycoach-web.zip www/.github
           
-          # Android platform add karke build karenge
           cordova platform add android
-          cordova build android --release
+          cordova build android --debug
 
       - name: Upload Testing APK
         uses: actions/upload-artifact@v4
         with:
           name: mycoach-testing-apk
-          path: "my-app/platforms/android/app/build/outputs/apk/release/*.apk"
-
-      - name: Upload Play Store AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: mycoach-playstore-bundle
-          path: "my-app/platforms/android/app/build/outputs/bundle/release/*.aab"
+          path: "my-app/platforms/android/app/build/outputs/apk/debug/*.apk"
