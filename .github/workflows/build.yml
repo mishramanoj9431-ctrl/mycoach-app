@@ -1,0 +1,44 @@
+name: Build Play Store Android App Bundle (.aab)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+
+      - name: Extract Project ZIP File
+        run: |
+          sudo apt-get install unzip
+          unzip mycoach-web.zip -d .
+
+      - name: Set up Java JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install EAS CLI and Dependencies
+        run: |
+          npm install -g eas-cli
+          npm install
+
+      - name: Build Android App Bundle (.aab)
+        run: |
+          npx expo prebuild --platform android
+          cd android && ./gradlew bundleRelease
+
+      - name: Upload Production .aab Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mycoach-playstore-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
